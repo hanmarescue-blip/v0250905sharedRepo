@@ -27,22 +27,13 @@ export default function SignInPage() {
   }, [router, supabase])
 
   const handleGoogleSignIn = async () => {
+    if (!supabase) {
+      alert("인증 서비스가 설정되지 않았습니다.")
+      return
+    }
+
     setLoading(true)
     try {
-      console.log("[v0] Starting Google OAuth flow...")
-
-      if (!supabase) {
-        console.log("[v0] Supabase not available, using direct Google OAuth")
-        const response = await fetch("/api/auth/google")
-        const data = await response.json()
-        if (data.url) {
-          window.location.href = data.url
-          return
-        }
-        throw new Error("Failed to get Google OAuth URL")
-      }
-
-      console.log("[v0] Using Supabase OAuth")
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -51,18 +42,11 @@ export default function SignInPage() {
       })
 
       if (error) {
-        console.error("[v0] Supabase OAuth error:", error)
-        console.log("[v0] Falling back to direct Google OAuth")
-        const response = await fetch("/api/auth/google")
-        const data = await response.json()
-        if (data.url) {
-          window.location.href = data.url
-          return
-        }
-        throw error
+        console.error("Google 로그인 오류:", error)
+        alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.")
       }
     } catch (error) {
-      console.error("[v0] 로그인 오류:", error)
+      console.error("로그인 오류:", error)
       alert("로그인 중 오류가 발생했습니다.")
     } finally {
       setLoading(false)
