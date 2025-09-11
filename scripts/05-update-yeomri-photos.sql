@@ -1,0 +1,10 @@
+-- 염리점 실제 사진으로 업데이트
+DELETE FROM space_photos WHERE space_id = (SELECT id FROM spaces WHERE name = '염리점');
+
+INSERT INTO space_photos (space_id, photo_url, caption, display_order) VALUES
+((SELECT id FROM spaces WHERE name = '염리점'), 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E1%84%86%E1%85%A1%E1%84%91%E1%85%A9%E1%84%80%E1%85%AE%20%E1%84%92%E1%85%AC%E1%84%8B%E1%85%B4%E1%84%89%E1%85%B5%E1%86%AF.jpg-qKzfxfjGZQD0EsV4qvr8yN4rAJTNkW.jpeg', '마포구 회의실 - 깔끔한 화이트 인테리어', 1),
+((SELECT id FROM spaces WHERE name = '염리점'), 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E1%84%8B%E1%85%A7%E1%86%B7%E1%84%85%E1%85%B5%E1%84%83%E1%85%A9%E1%86%BC%20%E1%84%92%E1%85%AC%E1%84%8B%E1%85%B4%E1%84%89%E1%85%B5%E1%86%AF.jpg-vLWYJcoVGYnmByDWgYuEIcIlsLWRGl.jpeg', '염리동 회의실 - 그린 포인트 테이블', 2),
+((SELECT id FROM spaces WHERE name = '염리점'), 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E1%84%80%E1%85%A9%E1%86%BC%E1%84%8B%E1%85%B2%E1%84%80%E1%85%A9%E1%86%BC%E1%84%80%E1%85%A1%E1%86%AB%20%E1%84%8B%E1%85%A7%E1%86%B7%E1%84%85%E1%85%B5%E1%84%8C%E1%85%A5%E1%86%B7.jpg-tRUIttw6nWPaqEiognFYo5TAiMqLIQ.jpeg', '공유공간 염리점 - TV와 프레젠테이션 공간', 3),
+((SELECT id FROM spaces WHERE name = '염리점'), 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E1%84%80%E1%85%A9%E1%86%BC%E1%84%8B%E1%85%B2%E1%84%80%E1%85%A9%E1%86%BC%E1%84%80%E1%85%A1%E1%86%AB%20%E1%84%8B%E1%85%B5%E1%86%B8%E1%84%80%E1%85%AE.jpg-xKg39UKmwvdIuqbgFMECHauYTRQs1P.jpeg', '공유공간 입구 - MAPO 빌딩 1층', 4),
+((SELECT id FROM spaces WHERE name = '염리점'), 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E1%84%8B%E1%85%A7%E1%86%B7%E1%84%85%E1%85%B5%E1%84%8C%E1%85%A5%E1%86%B7%20%E1%84%87%E1%85%A9%E1%86%A8%E1%84%83%E1%85%A9.jpg-zNZUesidMxKbPD7QLIOcsLmDmg9YqN.jpeg', '염리점 복도 - 건물 내부 안내', 5),
+((SELECT id FROM spaces WHERE name = '염리점'), 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E1%84%80%E1%85%A9%E1%86%BC%E1%84%8B%E1%85%B2%E1%84%80%E1%85%A9%E1%86%BC%E1%84%80%E1%85%A1%E1%86%AB%202%E1%84%8E%E1%85%B3%E1%86%BC.jpg-cjk4b29B8vD5E0SNOeQnbJTx79iGmm.jpeg', '공유공간 2층 - 컬러풀한 안내 사인', 6);
