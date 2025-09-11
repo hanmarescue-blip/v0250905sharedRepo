@@ -28,7 +28,6 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     console.log("[v0] Starting Google sign in")
-    console.log("[v0] Supabase client:", !!supabase)
 
     if (!supabase) {
       console.log("[v0] Supabase client not available")
@@ -38,12 +37,17 @@ export default function SignInPage() {
 
     setLoading(true)
     try {
-      console.log("[v0] Attempting OAuth with redirect:", `${window.location.origin}/auth/callback`)
+      const redirectTo = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`
+      console.log("[v0] OAuth redirect URL:", redirectTo)
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       })
 
@@ -52,6 +56,8 @@ export default function SignInPage() {
       if (error) {
         console.error("[v0] Google 로그인 오류:", error)
         alert(`로그인 오류: ${error.message}`)
+      } else {
+        console.log("[v0] OAuth initiated successfully")
       }
     } catch (error) {
       console.error("[v0] 로그인 예외:", error)
