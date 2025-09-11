@@ -1,11 +1,33 @@
 import { createBrowserClient } from "@supabase/ssr"
 
+console.log("[v0] Checking user session...")
+console.log(
+  "[v0] Supabase configured:",
+  !!(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
+  ),
+)
+console.log("[v0] SUPABASE_URL exists:", !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+console.log("[v0] SUPABASE_ANON_KEY exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+console.log("[v0] SUPABASE_URL value:", process.env.NEXT_PUBLIC_SUPABASE_URL)
+console.log(
+  "[v0] SUPABASE_ANON_KEY value:",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "***" + process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.slice(-4) : "undefined",
+)
+
 export const isSupabaseConfigured = !!(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
   process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
 )
+
+if (!isSupabaseConfigured) {
+  console.log("[v0] Supabase not configured, skipping auth check")
+}
 
 export function createClient() {
   if (!isSupabaseConfigured) {
