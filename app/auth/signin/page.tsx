@@ -14,6 +14,8 @@ export default function SignInPage() {
 
   useEffect(() => {
     const checkSession = async () => {
+      if (!supabase) return
+
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -22,11 +24,25 @@ export default function SignInPage() {
       }
     }
     checkSession()
-  }, [router])
+  }, [router, supabase])
 
   const handleGoogleSignIn = async () => {
     setLoading(true)
     try {
+      console.log("[v0] Starting Google OAuth flow...")
+
+      if (!supabase) {
+        console.log("[v0] Supabase not available, using direct Google OAuth")
+        const response = await fetch("/api/auth/google")
+        const data = await response.json()
+        if (data.url) {
+          window.location.href = data.url
+          return
+        }
+        throw new Error("Failed to get Google OAuth URL")
+      }
+
+      console.log("[v0] Using Supabase OAuth")
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -35,11 +51,18 @@ export default function SignInPage() {
       })
 
       if (error) {
-        console.error("로그인 오류:", error)
-        alert("로그인 중 오류가 발생했습니다.")
+        console.error("[v0] Supabase OAuth error:", error)
+        console.log("[v0] Falling back to direct Google OAuth")
+        const response = await fetch("/api/auth/google")
+        const data = await response.json()
+        if (data.url) {
+          window.location.href = data.url
+          return
+        }
+        throw error
       }
     } catch (error) {
-      console.error("로그인 오류:", error)
+      console.error("[v0] 로그인 오류:", error)
       alert("로그인 중 오류가 발생했습니다.")
     } finally {
       setLoading(false)
