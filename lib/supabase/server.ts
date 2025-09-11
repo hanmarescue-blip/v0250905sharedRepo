@@ -2,12 +2,17 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { cache } from "react"
 
+const supabaseUrl = "https://iivumfnwizoivpuvblnz.supabase.co"
+const supabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpdnVtZm53aXpvaXZwdXZibG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzOTc1OTEsImV4cCI6MjA3MDk3MzU5MX0.rxxMhk70RANFkxZYCwIjFl4pgZXLlSjVUjsrDCpJh2w"
+
 // Check if Supabase environment variables are available
-export const isSupabaseConfigured =
-  typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
-  typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
+export const isSupabaseConfigured = !!(
+  supabaseUrl &&
+  supabaseAnonKey &&
+  supabaseUrl.length > 0 &&
+  supabaseAnonKey.length > 0
+)
 
 export const createClient = cache(() => {
   const cookieStore = cookies()
@@ -22,7 +27,7 @@ export const createClient = cache(() => {
     }
   }
 
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+  return createServerClient(supabaseUrl!, supabaseAnonKey!, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
