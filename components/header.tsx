@@ -24,6 +24,10 @@ export function Header() {
     const checkUser = async () => {
       try {
         console.log("[v0] Checking user session...")
+        console.log("[v0] Supabase configured:", isSupabaseConfigured)
+        console.log("[v0] SUPABASE_URL exists:", !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+        console.log("[v0] SUPABASE_ANON_KEY exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
         if (!isSupabaseConfigured) {
           console.log("[v0] Supabase not configured, skipping auth check")
           setLoading(false)
@@ -81,6 +85,7 @@ export function Header() {
 
   const handleGoogleSignIn = async () => {
     console.log("[v0] Google sign in button clicked")
+    console.log("[v0] Supabase configured:", isSupabaseConfigured)
 
     if (!isSupabaseConfigured) {
       alert("로그인 기능이 설정되지 않았습니다. 관리자에게 문의하세요.")
