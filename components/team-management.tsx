@@ -43,6 +43,30 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
     loadTeams()
   }, [clubId])
 
+  const generateNextTeamName = () => {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    const existingNames = teams.map((team) => team.name).filter((name) => /^[A-Z]$/.test(name))
+
+    for (let i = 0; i < alphabet.length; i++) {
+      const letter = alphabet[i]
+      if (!existingNames.includes(letter)) {
+        return letter
+      }
+    }
+
+    // If all single letters are used, start with AA, AB, etc.
+    for (let i = 0; i < alphabet.length; i++) {
+      for (let j = 0; j < alphabet.length; j++) {
+        const name = alphabet[i] + alphabet[j]
+        if (!existingNames.includes(name)) {
+          return name
+        }
+      }
+    }
+
+    return `팀${teams.length + 1}`
+  }
+
   const loadTeams = async () => {
     try {
       const { data, error } = await supabase
@@ -66,6 +90,12 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleOpenCreateDialog = () => {
+    const nextName = generateNextTeamName()
+    setNewTeamName(nextName)
+    setShowCreateDialog(true)
   }
 
   const handleCreateTeam = async () => {
@@ -152,28 +182,38 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
 
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-orange-600 hover:bg-orange-700">
+            <Button className="bg-orange-600 hover:bg-orange-700" onClick={handleOpenCreateDialog}>
               <Plus className="h-4 w-4 mr-2" />새 팀 만들기
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-white border-2 border-gray-200 shadow-2xl relative">
+            <div className="absolute inset-0 bg-black/80 -z-10" />
             <DialogHeader>
-              <DialogTitle>새 팀 만들기</DialogTitle>
+              <DialogTitle className="text-gray-900">새 팀 만들기</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">팀 이름</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">팀 이름</label>
                 <Input
                   value={newTeamName}
                   onChange={(e) => setNewTeamName(e.target.value)}
                   placeholder="팀 이름을 입력하세요"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateDialog(false)}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
                   취소
                 </Button>
-                <Button onClick={handleCreateTeam} disabled={creating || !newTeamName.trim()}>
+                <Button
+                  onClick={handleCreateTeam}
+                  disabled={creating || !newTeamName.trim()}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                >
                   {creating ? "생성 중..." : "팀 만들기"}
                 </Button>
               </div>
