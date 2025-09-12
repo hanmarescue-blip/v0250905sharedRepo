@@ -33,7 +33,7 @@ interface ClubLayoutProps {
 export default function ClubLayout({ club, currentUserId }: ClubLayoutProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "teams" | "meetings">("overview")
   const isCreator = club.creator_id === currentUserId
-  const memberCount = club.group_members.length
+  const memberCount = club.group_members?.length || 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50">
@@ -120,7 +120,7 @@ export default function ClubLayout({ club, currentUserId }: ClubLayoutProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {club.group_members.map((member) => (
+                      {(club.group_members || []).map((member) => (
                         <div
                           key={member.user_id}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"

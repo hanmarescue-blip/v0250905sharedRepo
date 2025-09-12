@@ -24,8 +24,9 @@ export default async function ClubPage({ params }: ClubPageProps) {
     .from("community_groups")
     .select(`
       *,
-      group_memberships (
-        user_id
+      group_members:group_memberships (
+        user_id,
+        joined_at
       )
     `)
     .eq("id", params.id)
@@ -39,10 +40,10 @@ export default async function ClubPage({ params }: ClubPageProps) {
     notFound()
   }
 
-  const memberships = club.group_memberships || []
+  // 사용자가 이 동호회의 멤버인지 확인
+  const memberships = club.group_members || []
   console.log("[v0] Memberships:", memberships)
 
-  // 사용자가 이 동호회의 멤버인지 확인
   const isMember = memberships.some((member) => member.user_id === user.id)
   console.log("[v0] Is member:", isMember)
 
