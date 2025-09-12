@@ -162,6 +162,9 @@ export function Header() {
             <Users className="w-4 h-4" />
             동호회 게시판
           </Button>
+          <Button variant="ghost" size="sm" className="flex items-center gap-2" onClick={() => router.push("/teams")}>
+            <Users className="w-4 h-4" />팀 메뉴
+          </Button>
         </div>
 
         <div className="flex items-center gap-4">
