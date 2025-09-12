@@ -17,8 +17,10 @@ export default async function ClubPage({ params }: ClubPageProps) {
     redirect("/auth/signin")
   }
 
+  console.log("[v0] Fetching club data for ID:", params.id)
+
   // 동호회 정보 가져오기
-  const { data: club } = await supabase
+  const { data: club, error } = await supabase
     .from("community_groups")
     .select(`
       *,
@@ -29,14 +31,23 @@ export default async function ClubPage({ params }: ClubPageProps) {
     .eq("id", params.id)
     .single()
 
+  console.log("[v0] Club data:", club)
+  console.log("[v0] Club error:", error)
+
   if (!club) {
+    console.log("[v0] Club not found, redirecting to 404")
     notFound()
   }
 
+  const memberships = club.group_memberships || []
+  console.log("[v0] Memberships:", memberships)
+
   // 사용자가 이 동호회의 멤버인지 확인
-  const isMember = club.group_memberships.some((member) => member.user_id === user.id)
+  const isMember = memberships.some((member) => member.user_id === user.id)
+  console.log("[v0] Is member:", isMember)
 
   if (!isMember) {
+    console.log("[v0] User is not a member, redirecting to community")
     redirect("/community")
   }
 
