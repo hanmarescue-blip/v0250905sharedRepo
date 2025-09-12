@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Users, Plus, MessageCircle, UserPlus, UserMinus } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import Link from "next/link"
 
 const supabase = createClient()
 
@@ -40,20 +41,6 @@ export default function CommunityGroups({
   const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState<string | null>(null)
   const router = useRouter()
-
-  const handleNavigateToClub = (groupId: string) => {
-    console.log("[v0] Navigating to club:", groupId)
-    console.log("[v0] Router object:", router)
-    console.log("[v0] Current pathname:", window.location.pathname)
-
-    try {
-      router.push(`/community/${groupId}`)
-      console.log("[v0] Navigation initiated successfully")
-    } catch (error) {
-      console.error("[v0] Navigation error:", error)
-      window.location.href = `/community/${groupId}`
-    }
-  }
 
   const handleCreateGroup = async () => {
     if (!newGroup.name.trim()) return
@@ -247,15 +234,35 @@ export default function CommunityGroups({
                             size="sm"
                             variant="outline"
                             onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              console.log("[v0] Button clicked for group:", group.id)
-                              handleNavigateToClub(group.id)
+                              console.log("[v0] Button clicked - starting navigation")
+                              console.log("[v0] Group ID:", group.id)
+                              console.log("[v0] Event:", e)
+
+                              // Try multiple navigation methods
+                              try {
+                                console.log("[v0] Attempting router.push")
+                                router.push(`/community/${group.id}`)
+                                console.log("[v0] Router.push completed")
+                              } catch (error) {
+                                console.error("[v0] Router.push failed:", error)
+                                console.log("[v0] Falling back to window.location")
+                                window.location.href = `/community/${group.id}`
+                              }
                             }}
                           >
                             <MessageCircle className="h-4 w-4 mr-1" />
                             보기
                           </Button>
+                          <Link
+                            href={`/community/${group.id}`}
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                            onClick={(e) => {
+                              console.log("[v0] Link clicked for group:", group.id)
+                            }}
+                          >
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            링크로 보기
+                          </Link>
                           <Button
                             size="sm"
                             variant="outline"
