@@ -15,7 +15,6 @@ export default function HomePage() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-foreground mb-2">편리한 공간대여 서비스</h2>
-          
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -30,19 +29,6 @@ export default function HomePage() {
             >
               <MapPin className="w-5 h-5 mr-2" />
               염리점 예약하기
-            </Button>
-            <Button
-              size="lg"
-              className="text-lg px-8 py-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-              onClick={() =>
-                window.open(
-                  "https://map.naver.com/p/search/%EA%B3%B5%EC%9C%A0%EA%B3%B5%EA%B0%84/place/1123250540?c=15.59,0,0,0,dh&placePath=/home?from=map&fromPanelNum=2&timestamp=202508171053&locale=ko&svcName=map_pcv5&searchText=%EA%B3%B5%EC%9C%A0%EA%B3%B5%EA%B0%84",
-                  "_blank",
-                )
-              }
-            >
-              <MapPin className="w-5 h-5 mr-2" />
-              공덕점 예약하기
             </Button>
           </div>
 
@@ -83,15 +69,6 @@ export default function HomePage() {
               >
                 <Camera className="w-5 h-5 mr-2" />
                 염리점 사진 갤러리
-              </Button>
-            </Link>
-            <Link href="/spaces">
-              <Button
-                size="lg"
-                className="text-lg px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
-              >
-                <Camera className="w-5 h-5 mr-2" />
-                공덕점 사진 갤러리
               </Button>
             </Link>
           </div>

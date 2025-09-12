@@ -41,6 +41,11 @@ export default function CommunityGroups({
   const [joining, setJoining] = useState<string | null>(null)
   const router = useRouter()
 
+  const handleNavigateToClub = (groupId: string) => {
+    console.log("[v0] Navigating to club:", groupId)
+    router.push(`/community/${groupId}`)
+  }
+
   const handleCreateGroup = async () => {
     if (!newGroup.name.trim()) return
 
@@ -151,33 +156,43 @@ export default function CommunityGroups({
               <Plus className="h-4 w-4 mr-2" />새 동호회 만들기
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>새 동호회 만들기</DialogTitle>
+          <DialogContent className="bg-white border-2 border-gray-200 shadow-2xl max-w-md">
+            <DialogHeader className="pb-4 border-b border-gray-100">
+              <DialogTitle className="text-xl font-bold text-gray-900">새 동호회 만들기</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-6 pt-4">
               <div>
-                <label className="block text-sm font-medium mb-2">동호회 이름</label>
+                <label className="block text-sm font-semibold mb-3 text-gray-700">동호회 이름</label>
                 <Input
                   value={newGroup.name}
                   onChange={(e) => setNewGroup((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="동호회 이름을 입력하세요"
+                  className="border-2 border-gray-200 focus:border-orange-500 bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">동호회 설명</label>
+                <label className="block text-sm font-semibold mb-3 text-gray-700">동호회 설명</label>
                 <Textarea
                   value={newGroup.description}
                   onChange={(e) => setNewGroup((prev) => ({ ...prev, description: e.target.value }))}
                   placeholder="동호회에 대한 설명을 입력하세요"
-                  rows={3}
+                  rows={4}
+                  className="border-2 border-gray-200 focus:border-orange-500 bg-white resize-none"
                 />
               </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              <div className="flex gap-3 justify-end pt-4 border-t border-gray-100">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateDialog(false)}
+                  className="border-2 border-gray-300 hover:bg-gray-50"
+                >
                   취소
                 </Button>
-                <Button onClick={handleCreateGroup} disabled={creating || !newGroup.name.trim()}>
+                <Button
+                  onClick={handleCreateGroup}
+                  disabled={creating || !newGroup.name.trim()}
+                  className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400"
+                >
                   {creating ? "생성 중..." : "동호회 만들기"}
                 </Button>
               </div>
@@ -200,7 +215,7 @@ export default function CommunityGroups({
             const memberCount = group.group_memberships.length
 
             return (
-              <Card key={group.id} className="hover:shadow-lg transition-shadow">
+              <Card key={group.id} className="hover:shadow-lg transition-shadow border-2 border-gray-200">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg">{group.name}</CardTitle>
@@ -219,7 +234,7 @@ export default function CommunityGroups({
                     <div className="flex gap-2">
                       {isMember ? (
                         <>
-                          <Button size="sm" variant="outline" onClick={() => router.push(`/community/${group.id}`)}>
+                          <Button size="sm" variant="outline" onClick={() => handleNavigateToClub(group.id)}>
                             <MessageCircle className="h-4 w-4 mr-1" />
                             보기
                           </Button>
