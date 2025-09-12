@@ -211,7 +211,22 @@ export default function CommunityGroups({
             const memberCount = group.group_memberships.length
 
             return (
-              <Card key={group.id} className="hover:shadow-lg transition-shadow border-2 border-gray-200">
+              <Card
+                key={group.id}
+                className="hover:shadow-lg transition-shadow border-2 border-gray-200 cursor-pointer"
+                onClick={() => {
+                  console.log("[v0] Card clicked for group:", group.id)
+                  if (isMember) {
+                    console.log("[v0] User is member, navigating...")
+                    try {
+                      router.push(`/community/${group.id}`)
+                    } catch (error) {
+                      console.error("[v0] Navigation failed:", error)
+                      window.location.href = `/community/${group.id}`
+                    }
+                  }
+                }}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg">{group.name}</CardTitle>
@@ -227,41 +242,20 @@ export default function CommunityGroups({
                       <span>{memberCount}명</span>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       {isMember ? (
                         <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              console.log("[v0] Button clicked - starting navigation")
-                              console.log("[v0] Group ID:", group.id)
-                              console.log("[v0] Event:", e)
-
-                              // Try multiple navigation methods
-                              try {
-                                console.log("[v0] Attempting router.push")
-                                router.push(`/community/${group.id}`)
-                                console.log("[v0] Router.push completed")
-                              } catch (error) {
-                                console.error("[v0] Router.push failed:", error)
-                                console.log("[v0] Falling back to window.location")
-                                window.location.href = `/community/${group.id}`
-                              }
-                            }}
-                          >
-                            <MessageCircle className="h-4 w-4 mr-1" />
-                            보기
-                          </Button>
-                          <Link
-                            href={`/community/${group.id}`}
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
-                            onClick={(e) => {
-                              console.log("[v0] Link clicked for group:", group.id)
-                            }}
-                          >
-                            <MessageCircle className="h-4 w-4 mr-1" />
-                            링크로 보기
+                          <Link href={`/community/${group.id}`}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                console.log("[v0] Direct link button clicked for group:", group.id)
+                              }}
+                            >
+                              <MessageCircle className="h-4 w-4 mr-1" />
+                              보기
+                            </Button>
                           </Link>
                           <Button
                             size="sm"
