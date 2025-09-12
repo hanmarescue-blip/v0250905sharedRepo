@@ -43,7 +43,16 @@ export default function CommunityGroups({
 
   const handleNavigateToClub = (groupId: string) => {
     console.log("[v0] Navigating to club:", groupId)
-    router.push(`/community/${groupId}`)
+    console.log("[v0] Router object:", router)
+    console.log("[v0] Current pathname:", window.location.pathname)
+
+    try {
+      router.push(`/community/${groupId}`)
+      console.log("[v0] Navigation initiated successfully")
+    } catch (error) {
+      console.error("[v0] Navigation error:", error)
+      window.location.href = `/community/${groupId}`
+    }
   }
 
   const handleCreateGroup = async () => {
@@ -234,7 +243,16 @@ export default function CommunityGroups({
                     <div className="flex gap-2">
                       {isMember ? (
                         <>
-                          <Button size="sm" variant="outline" onClick={() => handleNavigateToClub(group.id)}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              console.log("[v0] Button clicked for group:", group.id)
+                              handleNavigateToClub(group.id)
+                            }}
+                          >
                             <MessageCircle className="h-4 w-4 mr-1" />
                             보기
                           </Button>
