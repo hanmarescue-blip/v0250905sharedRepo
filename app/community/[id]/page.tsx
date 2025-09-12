@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
-import GroupDetails from "@/components/group-details"
+import ClubLayout from "@/components/club-layout"
 
-interface GroupPageProps {
+interface ClubPageProps {
   params: { id: string }
 }
 
-export default async function GroupPage({ params }: GroupPageProps) {
+export default async function ClubPage({ params }: ClubPageProps) {
   const supabase = createClient()
 
   const {
@@ -17,8 +17,8 @@ export default async function GroupPage({ params }: GroupPageProps) {
     redirect("/auth/signin")
   }
 
-  // 그룹 정보 가져오기
-  const { data: group } = await supabase
+  // 동호회 정보 가져오기
+  const { data: club } = await supabase
     .from("community_groups")
     .select(`
       *,
@@ -31,22 +31,16 @@ export default async function GroupPage({ params }: GroupPageProps) {
     .eq("is_active", true)
     .single()
 
-  if (!group) {
+  if (!club) {
     notFound()
   }
 
-  // 사용자가 이 그룹의 멤버인지 확인
-  const isMember = group.group_members.some((member) => member.user_id === user.id)
+  // 사용자가 이 동호회의 멤버인지 확인
+  const isMember = club.group_members.some((member) => member.user_id === user.id)
 
   if (!isMember) {
     redirect("/community")
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <GroupDetails group={group} currentUserId={user.id} />
-      </div>
-    </div>
-  )
+  return <ClubLayout club={club} currentUserId={user.id} />
 }

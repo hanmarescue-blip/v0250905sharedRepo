@@ -37,9 +37,9 @@ export default async function CommunityPage() {
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">동호회 게시판</h1>
-          <p className="text-lg text-gray-600">관심사가 같은 사람들과 함께 모임을 만들어보세요</p>
+          <p className="text-lg text-gray-600">관심사가 같은 사람들과 함께 동호회를 만들어보세요</p>
           <div className="mt-6 p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
-            <p className="text-yellow-800 font-medium">이 페이지는 개선 작업 중입니다.</p>
+            <p className="text-yellow-800 font-medium">팀 구성과 팀 미팅 기능이 추가되었습니다.</p>
           </div>
         </div>
 
