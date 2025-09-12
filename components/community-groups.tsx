@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -38,6 +39,7 @@ export default function CommunityGroups({
   const [newGroup, setNewGroup] = useState({ name: "", description: "" })
   const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState<string | null>(null)
+  const router = useRouter()
 
   const handleCreateGroup = async () => {
     if (!newGroup.name.trim()) return
@@ -217,11 +219,7 @@ export default function CommunityGroups({
                     <div className="flex gap-2">
                       {isMember ? (
                         <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => (window.location.href = `/community/${group.id}`)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => router.push(`/community/${group.id}`)}>
                             <MessageCircle className="h-4 w-4 mr-1" />
                             보기
                           </Button>

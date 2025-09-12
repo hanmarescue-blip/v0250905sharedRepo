@@ -22,13 +22,11 @@ export default async function ClubPage({ params }: ClubPageProps) {
     .from("community_groups")
     .select(`
       *,
-      group_members (
-        user_id,
-        joined_at
+      group_memberships (
+        user_id
       )
     `)
     .eq("id", params.id)
-    .eq("is_active", true)
     .single()
 
   if (!club) {
@@ -36,7 +34,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
   }
 
   // 사용자가 이 동호회의 멤버인지 확인
-  const isMember = club.group_members.some((member) => member.user_id === user.id)
+  const isMember = club.group_memberships.some((member) => member.user_id === user.id)
 
   if (!isMember) {
     redirect("/community")
