@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       { email: "jane.smith@example.com", display_name: "Jane Smith" },
     ]
 
-    const { data, error } = await supabase.from("profiles").upsert(testUsers, { onConflict: "email" }).select()
+    const { data, error } = await supabase.from("profiles").insert(testUsers).select()
 
     if (error) {
       console.log("[v0] Insert error:", error)
