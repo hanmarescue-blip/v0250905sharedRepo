@@ -355,11 +355,11 @@ export default function TeamsPage() {
                 <Plus className="h-4 w-4 mr-2" />팀 만들기
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md mx-auto fixed top-[5%] left-1/2 transform -translate-x-1/2 h-[80vh] flex flex-col z-50 bg-white dark:bg-gray-900">
-              <DialogHeader>
-                <DialogTitle>새 팀 만들기</DialogTitle>
+            <DialogContent className="max-w-md mx-auto fixed top-[10px] left-1/2 transform -translate-x-1/2 h-[85vh] flex flex-col z-50 bg-white dark:bg-gray-900 border-2 border-orange-500">
+              <DialogHeader className="pb-4">
+                <DialogTitle className="text-xl">새 팀 만들기</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 flex-1 overflow-hidden">
+              <div className="space-y-6 flex-1 overflow-y-auto px-1">
                 <div>
                   <label className="block text-sm font-medium mb-2">팀 이름</label>
                   <input

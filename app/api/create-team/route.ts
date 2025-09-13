@@ -27,12 +27,12 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Team created:", teamData)
 
-    // Add leader as confirmed member
     const { error: leaderError } = await supabase.from("team_members").insert({
       team_id: teamData.id,
       user_id: leader_id,
       role: "leader",
       status: "confirmed",
+      invited_at: new Date().toISOString(),
       confirmed_at: new Date().toISOString(),
     })
 
@@ -41,12 +41,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: leaderError.message }, { status: 400 })
     }
 
-    // Add other members as pending
     const memberInserts = member_ids.map((user_id: string) => ({
       team_id: teamData.id,
       user_id,
       role: "member",
       status: "pending",
+      invited_at: new Date().toISOString(),
     }))
 
     const { error: membersError } = await supabase.from("team_members").insert(memberInserts)
