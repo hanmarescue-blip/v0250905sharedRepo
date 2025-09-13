@@ -44,6 +44,9 @@ export default function TeamsPage() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
   const [creating, setCreating] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [teamName, setTeamName] = useState("")
+  const [memberNames, setMemberNames] = useState<string[]>(["", "", ""])
+  const [searchResults, setSearchResults] = useState<any[][]>([[], [], []])
 
   useEffect(() => {
     checkAuth()
@@ -110,75 +113,119 @@ export default function TeamsPage() {
     }
   }
 
+  const handleMemberNameChange = async (index: number, name: string) => {
+    const newNames = [...memberNames]
+    newNames[index] = name
+    setMemberNames(newNames)
+
+    if (name.trim().length > 0) {
+      try {
+        console.log(`[v0] Starting search for: ${name}`)
+        const response = await fetch(`/api/search-users?q=${encodeURIComponent(name.trim())}`)
+
+        if (!response.ok) {
+          console.log(`[v0] Search API error: ${response.status}`)
+          return
+        }
+
+        const data = await response.json()
+        console.log(`[v0] Search API results:`, data.users?.length || 0)
+
+        const newResults = [...searchResults]
+        newResults[index] = data.users || []
+        setSearchResults(newResults)
+
+        if (data.users && data.users.length === 1) {
+          console.log(`[v0] Single user found, auto-selecting`)
+          selectUser(index, data.users[0])
+        } else if (!data.users || data.users.length === 0) {
+          console.log(`[v0] No users found, setting error message`)
+          // Clear selection if no users found
+          const newSelected = [...selectedMembers]
+          newSelected[index] = null
+          setSelectedMembers(newSelected)
+        }
+      } catch (error) {
+        console.error(`[v0] Search error:`, error)
+      }
+    } else {
+      const newResults = [...searchResults]
+      newResults[index] = []
+      setSearchResults(newResults)
+
+      const newSelected = [...selectedMembers]
+      newSelected[index] = null
+      setSelectedMembers(newSelected)
+    }
+  }
+
+  const selectUser = (index: number, user: any) => {
+    console.log(`[v0] Updating member name at index ${index} to: ${user.display_name}`)
+    const newNames = [...memberNames]
+    newNames[index] = user.display_name
+    setMemberNames(newNames)
+
+    const newSelected = [...selectedMembers]
+    newSelected[index] = user.id
+    setSelectedMembers(newSelected)
+
+    const newResults = [...searchResults]
+    newResults[index] = []
+    setSearchResults(newResults)
+  }
+
   const handleCreateTeam = async () => {
-    if (!currentUser || selectedMembers.length !== 3) {
-      alert("팀장 포함 4명을 선택해주세요.")
+    if (!currentUser) {
+      alert("로그인이 필요합니다.")
+      return
+    }
+
+    const validMembers = selectedMembers.filter(Boolean)
+    if (validMembers.length !== 3) {
+      alert("정확히 3명의 팀원을 선택해주세요.")
       return
     }
 
     setCreating(true)
     try {
-      console.log("[v0] Starting team creation for user:", currentUser.id)
-      console.log("[v0] Selected members:", selectedMembers)
+      console.log("[v0] Starting team creation...")
+      console.log("[v0] Current user:", currentUser.id)
+      console.log("[v0] Selected members:", validMembers)
 
-      const teamName = `팀 ${Date.now().toString().slice(-6)}`
+      const generatedTeamName = teamName.trim() || `팀 ${Date.now().toString().slice(-6)}`
 
-      // Create team with auto-generated name
-      const { data: teamData, error: teamError } = await supabase
-        .from("teams")
-        .insert({
-          name: teamName,
+      const response = await fetch("/api/create-team", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: generatedTeamName,
           leader_id: currentUser.id,
-          status: "pending",
-        })
-        .select()
-        .single()
-
-      console.log("[v0] Team creation result:", { teamData, teamError })
-      if (teamError) throw teamError
-
-      // Add team leader as confirmed member
-      const { error: leaderError } = await supabase.from("team_members").insert({
-        team_id: teamData.id,
-        user_id: currentUser.id,
-        role: "leader",
-        status: "confirmed",
-        confirmed_at: new Date().toISOString(),
+          member_ids: validMembers,
+        }),
       })
 
-      if (leaderError) throw leaderError
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to create team")
+      }
 
-      // Add selected members as pending
-      const memberInserts = selectedMembers.map((userId) => ({
-        team_id: teamData.id,
-        user_id: userId,
-        role: "member" as const,
-        status: "pending" as const,
-      }))
+      const result = await response.json()
+      console.log("[v0] Team created successfully:", result)
 
-      const { error: membersError } = await supabase.from("team_members").insert(memberInserts)
-
-      if (membersError) throw membersError
-
-      // Create invitations
-      const invitationInserts = selectedMembers.map((userId) => ({
-        team_id: teamData.id,
-        inviter_id: currentUser.id,
-        invitee_id: userId,
-        status: "pending" as const,
-      }))
-
-      const { error: invitationsError } = await supabase.from("team_invitations").insert(invitationInserts)
-
-      if (invitationsError) throw invitationsError
-
+      // Reset form
+      setTeamName("")
+      setMemberNames(["", "", ""])
       setSelectedMembers([])
+      setSearchResults([[], [], []])
       setShowCreateDialog(false)
+
       await loadTeams()
-      alert(`팀 ${teamData.name}이 생성되었습니다! 멤버들의 확인을 기다리고 있습니다.`)
+      alert(`팀 "${generatedTeamName}"이 생성되었습니다! 멤버들의 확인을 기다리고 있습니다.`)
     } catch (error) {
       console.error("[v0] Error creating team:", error)
-      alert("팀 생성 중 오류가 발생했습니다.")
+      alert(`팀 생성 중 오류가 발생했습니다: ${error.message}`)
     } finally {
       setCreating(false)
     }
@@ -308,69 +355,65 @@ export default function TeamsPage() {
                 <Plus className="h-4 w-4 mr-2" />팀 만들기
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md mx-auto fixed top-[10%] left-1/2 transform -translate-x-1/2 h-[75vh] flex flex-col z-50">
+            <DialogContent className="max-w-md mx-auto fixed top-[5%] left-1/2 transform -translate-x-1/2 h-[80vh] flex flex-col z-50 bg-white dark:bg-gray-900">
               <DialogHeader>
                 <DialogTitle>새 팀 만들기</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 flex-1 overflow-hidden">
                 <div>
-                  <label className="block text-sm font-medium mb-2">팀 멤버 선택 (3명)</label>
-                  <p className="text-sm text-muted-foreground mb-3">팀장(본인) 포함 총 4명이 됩니다.</p>
-                  <div className="space-y-2 max-h-96 overflow-y-auto border rounded-md p-2">
-                    {users.map((user) => (
-                      <div
-                        key={user.id}
-                        className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-                      >
+                  <label className="block text-sm font-medium mb-2">팀 이름</label>
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="팀 이름을 입력하세요"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">팀 이름은 자동으로 생성됩니다</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">팀원 이름 (3명)</label>
+                  <div className="space-y-3">
+                    {[0, 1, 2].map((index) => (
+                      <div key={index}>
                         <input
-                          type="checkbox"
-                          id={user.id}
-                          checked={selectedMembers.includes(user.id)}
-                          onChange={(e) => {
-                            console.log("[v0] Checkbox changed:", e.target.checked, "for user:", user.id)
-                            if (e.target.checked) {
-                              if (selectedMembers.length < 3) {
-                                setSelectedMembers([...selectedMembers, user.id])
-                              }
-                            } else {
-                              setSelectedMembers(selectedMembers.filter((id) => id !== user.id))
-                            }
-                          }}
-                          disabled={!selectedMembers.includes(user.id) && selectedMembers.length >= 3}
-                          className="rounded border-gray-300"
+                          type="text"
+                          value={memberNames[index] || ""}
+                          onChange={(e) => handleMemberNameChange(index, e.target.value)}
+                          placeholder={`${index + 1}번째 팀원 이름`}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                         />
-                        <label htmlFor={user.id} className="text-sm cursor-pointer flex-1">
-                          {user.email}
-                        </label>
+                        {searchResults[index] && searchResults[index].length > 0 && (
+                          <div className="mt-1 border border-gray-200 rounded-md bg-white dark:bg-gray-800 max-h-32 overflow-y-auto">
+                            {searchResults[index].map((user: any) => (
+                              <div
+                                key={user.id}
+                                onClick={() => selectUser(index, user)}
+                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b last:border-b-0"
+                              >
+                                <div className="font-medium text-sm">{user.display_name}</div>
+                                <div className="text-xs text-gray-500">{user.email}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {memberNames[index] && !selectedMembers[index] && (
+                          <div className="text-red-500 text-xs mt-1">해당 이름의 사용자를 찾을 수 없습니다</div>
+                        )}
                       </div>
                     ))}
-                    {users.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">사용자를 불러오는 중...</p>
-                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">선택된 멤버: {selectedMembers.length}/3명</p>
+                  <p className="text-xs text-muted-foreground mt-2">팀장 포함 총 4명으로 구성됩니다</p>
                 </div>
+
                 <div className="flex gap-2 justify-end pt-4 border-t">
                   <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                     취소
                   </Button>
                   <Button
-                    onClick={() => {
-                      console.log("[v0] Create team button clicked")
-                      console.log("[v0] Selected members count:", selectedMembers.length)
-                      console.log("[v0] Current user:", currentUser)
-                      console.log("[v0] Users available:", users.length)
-                      if (selectedMembers.length !== 3) {
-                        alert("정확히 3명의 멤버를 선택해주세요.")
-                        return
-                      }
-                      if (!currentUser) {
-                        alert("로그인이 필요합니다.")
-                        return
-                      }
-                      handleCreateTeam()
-                    }}
-                    disabled={creating || selectedMembers.length !== 3}
+                    onClick={handleCreateTeam}
+                    disabled={creating || selectedMembers.filter(Boolean).length !== 3}
                     className="bg-orange-600 hover:bg-orange-700"
                   >
                     {creating ? "생성 중..." : "팀 만들기"}
