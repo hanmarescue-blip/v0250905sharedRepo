@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   console.log("[v0] Checking profiles table...")
 
   try {
-    const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value
