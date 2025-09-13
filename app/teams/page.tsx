@@ -104,7 +104,7 @@ export default function TeamsPage() {
 
   const loadUsers = async () => {
     try {
-      const { data, error } = await supabase.from("profiles").select("id, email").neq("id", currentUser?.id).limit(20)
+      const { data, error } = await supabase.from("user_info").select("id, email").neq("id", currentUser?.id).limit(20)
 
       if (error) throw error
       setUsers(data || [])
@@ -377,11 +377,13 @@ export default function TeamsPage() {
                 <Plus className="h-4 w-4 mr-2" />팀 만들기
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md mx-auto fixed top-[50px] left-1/2 transform -translate-x-1/2 h-[90vh] flex flex-col z-50 bg-white dark:bg-gray-900 border-4 border-red-500 shadow-2xl">
-              <DialogHeader className="pb-4 bg-red-100 dark:bg-red-900 -mx-6 -mt-6 px-6 pt-6 mb-4">
-                <DialogTitle className="text-xl text-red-800 dark:text-red-200">새 팀 만들기 (상단 위치)</DialogTitle>
+            <DialogContent className="max-w-md mx-auto fixed top-[20px] left-1/2 transform -translate-x-1/2 h-[95vh] flex flex-col z-50 bg-white dark:bg-gray-900 border-4 border-blue-500 shadow-2xl">
+              <DialogHeader className="pb-4 bg-blue-100 dark:bg-blue-900 -mx-6 -mt-6 px-6 pt-6 mb-4">
+                <DialogTitle className="text-xl text-blue-800 dark:text-blue-200">
+                  새 팀 만들기 (최상단 위치)
+                </DialogTitle>
               </DialogHeader>
-              <div className="space-y-6 flex-1 overflow-y-auto px-1" style={{ maxHeight: "calc(90vh - 120px)" }}>
+              <div className="space-y-6 flex-1 overflow-y-auto px-1" style={{ maxHeight: "calc(95vh - 120px)" }}>
                 <div>
                   <label className="block text-sm font-medium mb-2">팀 이름</label>
                   <input
