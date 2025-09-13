@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Users, Plus, Crown, UserMinus } from "lucide-react"
+import { Users, Plus, Crown, UserMinus, Search, AlertCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
 const supabase = createClient()
@@ -29,6 +29,17 @@ interface TeamMember {
   status: string
 }
 
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
+interface UserSearchResult {
+  user: User
+  emailPrefix: string
+}
+
 interface TeamManagementProps {
   clubId: string
   currentUserId: string
@@ -39,6 +50,9 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [newTeamName, setNewTeamName] = useState("")
   const [memberNames, setMemberNames] = useState<string[]>(["", "", ""])
+  const [memberSearchResults, setMemberSearchResults] = useState<(UserSearchResult[] | null)[]>([null, null, null])
+  const [selectedMembers, setSelectedMembers] = useState<(User | null)[]>([null, null, null])
+  const [searchErrors, setSearchErrors] = useState<(string | null)[]>([null, null, null])
   const [creating, setCreating] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -57,7 +71,6 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
       }
     }
 
-    // If all single letters are used, start with AA, AB, etc.
     for (let i = 0; i < alphabet.length; i++) {
       for (let j = 0; j < alphabet.length; j++) {
         const name = alphabet[i] + alphabet[j]
@@ -97,15 +110,96 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
     }
   }
 
-  const handleOpenCreateDialog = () => {
-    const nextName = generateNextTeamName()
-    setNewTeamName(nextName)
-    setMemberNames(["", "", ""])
-    setShowCreateDialog(true)
+  const searchUsers = async (name: string): Promise<UserSearchResult[]> => {
+    if (!name.trim()) return []
+
+    try {
+      const { data: exactMatches, error: exactError } = await supabase
+        .from("users")
+        .select("id, name, email")
+        .ilike("name", name.trim())
+
+      if (exactError) throw exactError
+
+      if (exactMatches && exactMatches.length > 0) {
+        return exactMatches.map((user) => ({
+          user,
+          emailPrefix: user.email.split("@")[0],
+        }))
+      }
+
+      const { data: emailMatches, error: emailError } = await supabase
+        .from("users")
+        .select("id, name, email")
+        .ilike("email", `${name.trim()}@%`)
+
+      if (emailError) throw emailError
+
+      if (emailMatches && emailMatches.length > 0) {
+        return emailMatches.map((user) => ({
+          user,
+          emailPrefix: user.email.split("@")[0],
+        }))
+      }
+
+      return []
+    } catch (error) {
+      console.error("Error searching users:", error)
+      return []
+    }
+  }
+
+  const updateMemberName = async (index: number, name: string) => {
+    const newNames = [...memberNames]
+    newNames[index] = name
+    setMemberNames(newNames)
+
+    const newSearchResults = [...memberSearchResults]
+    const newSelectedMembers = [...selectedMembers]
+    const newSearchErrors = [...searchErrors]
+
+    newSearchResults[index] = null
+    newSelectedMembers[index] = null
+    newSearchErrors[index] = null
+
+    if (name.trim()) {
+      const results = await searchUsers(name)
+
+      if (results.length === 0) {
+        newSearchErrors[index] = "해당 이름의 사용자를 찾을 수 없습니다."
+      } else if (results.length === 1) {
+        newSelectedMembers[index] = results[0].user
+        newSearchErrors[index] = null
+      } else {
+        newSearchResults[index] = results
+        newSearchErrors[index] = null
+      }
+    }
+
+    setMemberSearchResults(newSearchResults)
+    setSelectedMembers(newSelectedMembers)
+    setSearchErrors(newSearchErrors)
+  }
+
+  const selectMember = (index: number, user: User) => {
+    const newSelectedMembers = [...selectedMembers]
+    const newSearchResults = [...memberSearchResults]
+
+    newSelectedMembers[index] = user
+    newSearchResults[index] = null
+
+    setSelectedMembers(newSelectedMembers)
+    setMemberSearchResults(newSearchResults)
   }
 
   const handleCreateTeam = async () => {
     if (!newTeamName.trim()) return
+
+    const validMembers = selectedMembers.filter((member) => member !== null)
+    if (validMembers.length !== memberNames.filter((name) => name.trim()).length) {
+      alert("모든 팀원을 올바르게 선택해주세요.")
+      return
+    }
 
     setCreating(true)
     try {
@@ -131,14 +225,12 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
 
       if (memberError) throw memberError
 
-      const memberInvitations = memberNames
-        .filter((name) => name.trim())
-        .map((name) => ({
-          team_id: teamData.id,
-          inviter_id: currentUserId,
-          invitee_id: `pending_${name.trim()}_${Date.now()}`, // Temporary ID until user accepts
-          status: "pending",
-        }))
+      const memberInvitations = validMembers.map((member) => ({
+        team_id: teamData.id,
+        inviter_id: currentUserId,
+        invitee_id: member!.id,
+        status: "pending",
+      }))
 
       if (memberInvitations.length > 0) {
         const { error: invitationsError } = await supabase.from("team_invitations").insert(memberInvitations)
@@ -146,28 +238,14 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
         if (invitationsError) console.error("Error creating invitations:", invitationsError)
       }
 
-      const memberInserts = memberNames
-        .filter((name) => name.trim())
-        .map((name) => ({
-          team_id: teamData.id,
-          user_id: `pending_${name.trim()}_${Date.now()}`,
-          role: "member",
-          status: "invited",
-        }))
-
-      if (memberInserts.length > 0) {
-        const { error: membersError } = await supabase.from("team_members").insert(memberInserts)
-
-        if (membersError) console.error("Error adding team members:", membersError)
-      }
-
       setNewTeamName("")
       setMemberNames(["", "", ""])
+      setMemberSearchResults([null, null, null])
+      setSelectedMembers([null, null, null])
+      setSearchErrors([null, null, null])
       setShowCreateDialog(false)
       await loadTeams()
-      alert(
-        `팀이 생성되었습니다! ${memberNames.filter((name) => name.trim()).length}명에게 초대 알림이 전송되었습니다.`,
-      )
+      alert(`팀이 생성되었습니다! ${validMembers.length}명에게 초대 알림이 전송되었습니다.`)
     } catch (error) {
       console.error("Error creating team:", error)
       alert("팀 생성 중 오류가 발생했습니다.")
@@ -209,10 +287,14 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
     }
   }
 
-  const updateMemberName = (index: number, name: string) => {
-    const newNames = [...memberNames]
-    newNames[index] = name
-    setMemberNames(newNames)
+  const handleOpenCreateDialog = () => {
+    const nextName = generateNextTeamName()
+    setNewTeamName(nextName)
+    setMemberNames(["", "", ""])
+    setMemberSearchResults([null, null, null])
+    setSelectedMembers([null, null, null])
+    setSearchErrors([null, null, null])
+    setShowCreateDialog(true)
   }
 
   if (loading) {
@@ -233,7 +315,7 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
               <Plus className="h-4 w-4 mr-2" />새 팀 만들기
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-white border-2 border-gray-200 shadow-2xl">
+          <DialogContent className="bg-white border-2 border-gray-200 shadow-2xl max-w-md">
             <DialogHeader>
               <DialogTitle className="text-gray-900">새 팀 만들기</DialogTitle>
             </DialogHeader>
@@ -246,15 +328,49 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
 
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-700">팀원 이름 (3명)</label>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {memberNames.map((name, index) => (
-                    <Input
-                      key={index}
-                      value={name}
-                      onChange={(e) => updateMemberName(index, e.target.value)}
-                      placeholder={`팀원 ${index + 1} 이름`}
-                      className="bg-white border-gray-300 text-gray-900"
-                    />
+                    <div key={index} className="space-y-2">
+                      <div className="relative">
+                        <Input
+                          value={name}
+                          onChange={(e) => updateMemberName(index, e.target.value)}
+                          placeholder={`팀원 ${index + 1} 이름`}
+                          className="bg-white border-gray-300 text-gray-900 pr-8"
+                        />
+                        <Search className="absolute right-2 top-2.5 h-4 w-4 text-gray-400" />
+                      </div>
+
+                      {searchErrors[index] && (
+                        <div className="flex items-center gap-2 text-sm text-red-600">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>{searchErrors[index]}</span>
+                        </div>
+                      )}
+
+                      {selectedMembers[index] && (
+                        <div className="p-2 bg-green-50 border border-green-200 rounded text-sm">
+                          <div className="font-medium text-green-800">{selectedMembers[index]!.name}</div>
+                          <div className="text-green-600">{selectedMembers[index]!.email}</div>
+                        </div>
+                      )}
+
+                      {memberSearchResults[index] && memberSearchResults[index]!.length > 1 && (
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          <p className="text-xs text-gray-600">여러 명이 발견되었습니다. 선택해주세요:</p>
+                          {memberSearchResults[index]!.map((result, resultIndex) => (
+                            <button
+                              key={resultIndex}
+                              onClick={() => selectMember(index, result.user)}
+                              className="w-full p-2 text-left bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded text-sm"
+                            >
+                              <div className="font-medium">{result.user.name}</div>
+                              <div className="text-gray-600">{result.emailPrefix}@...</div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">팀장 포함 총 4명으로 구성됩니다</p>
