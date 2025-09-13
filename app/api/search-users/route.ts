@@ -29,22 +29,22 @@ export async function POST(request: NextRequest) {
     const searchTerm = searchName.trim().toLowerCase()
     console.log("[v0] Server: Searching for term:", searchTerm)
 
-    console.log("[v0] Server: Searching profiles table...")
-    const { data: profilesData, error: profilesError } = await supabase
-      .from("profiles")
+    console.log("[v0] Server: Searching user_info table...")
+    const { data: userInfoData, error: userInfoError } = await supabase
+      .from("user_info")
       .select("id, display_name, email")
       .limit(50)
 
-    if (profilesError) {
-      console.error("[v0] Server: profiles table error:", profilesError)
+    if (userInfoError) {
+      console.error("[v0] Server: user_info table error:", userInfoError)
       return NextResponse.json({ error: "Failed to search users" }, { status: 500 })
     }
 
-    console.log("[v0] Server: Found profiles records:", profilesData?.length || 0)
-    console.log("[v0] Server: Profiles data sample:", JSON.stringify(profilesData?.[0], null, 2))
+    console.log("[v0] Server: Found user_info records:", userInfoData?.length || 0)
+    console.log("[v0] Server: User_info data sample:", JSON.stringify(userInfoData?.[0], null, 2))
 
     const filteredUsers =
-      profilesData?.filter((user: any) => {
+      userInfoData?.filter((user: any) => {
         const displayName = user.display_name || ""
         const email = user.email || ""
         const searchableText = `${displayName} ${email}`.toLowerCase()
@@ -90,18 +90,19 @@ export async function GET(request: NextRequest) {
 
     const searchTerm = searchName.trim().toLowerCase()
 
-    const { data: profilesData, error: profilesError } = await supabase
-      .from("profiles")
+    console.log("[v0] Server: Searching user_info table...")
+    const { data: userInfoData, error: userInfoError } = await supabase
+      .from("user_info")
       .select("id, display_name, email")
       .limit(50)
 
-    if (profilesError) {
-      console.error("[v0] Server: profiles table error:", profilesError)
+    if (userInfoError) {
+      console.error("[v0] Server: user_info table error:", userInfoError)
       return NextResponse.json({ error: "Failed to search users" }, { status: 500 })
     }
 
     const filteredUsers =
-      profilesData?.filter((user: any) => {
+      userInfoData?.filter((user: any) => {
         const displayName = user.display_name || ""
         const email = user.email || ""
         const searchableText = `${displayName} ${email}`.toLowerCase()

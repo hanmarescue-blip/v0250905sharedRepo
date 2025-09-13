@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
-  console.log("[v0] Adding test users to profiles...")
+  console.log("[v0] Adding test users to user_info...")
 
   try {
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
@@ -40,21 +40,20 @@ export async function POST(request: NextRequest) {
       }
 
       if (authData.user) {
-        // Create profile with the auth user's ID
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
+        const { data: userInfoData, error: userInfoError } = await supabase
+          .from("user_info")
           .insert({
-            id: authData.user.id,
+            user_id: authData.user.id,
             email: user.email,
             display_name: user.display_name,
           })
           .select()
 
-        if (profileError) {
-          console.log(`[v0] Profile creation error for ${user.email}:`, profileError)
+        if (userInfoError) {
+          console.log(`[v0] User_info creation error for ${user.email}:`, userInfoError)
         } else {
-          createdUsers.push(profileData[0])
-          console.log(`[v0] Created user and profile for ${user.email}`)
+          createdUsers.push(userInfoData[0])
+          console.log(`[v0] Created user and user_info for ${user.email}`)
         }
       }
     }

@@ -1,8 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr"
 
-const supabaseUrl = "https://iivumfnwizoivpuvblnz.supabase.co"
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpdnVtZm53aXpvaXZwdXZibG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzOTc1OTEsImV4cCI6MjA3MDk3MzU5MX0.rxxMhk70RANFkxZYCwIjFl4pgZXLlSjVUjsrDCpJh2w"
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 console.log("[v0] Supabase URL:", supabaseUrl)
 console.log("[v0] Supabase Anon Key:", supabaseAnonKey ? "***" + supabaseAnonKey.slice(-4) : "undefined")
