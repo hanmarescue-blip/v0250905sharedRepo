@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -13,10 +13,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ users: [] })
     }
 
-    console.log("[v0] Server: Creating Supabase client...")
+    console.log("[v0] Server: Creating Supabase admin client...")
 
-    const supabase = await createClient()
-    console.log("[v0] Server: Supabase client created successfully")
+    const supabase = createAdminClient()
+    console.log("[v0] Server: Supabase admin client created successfully")
 
     const searchTerm = searchName.trim().toLowerCase()
     console.log("[v0] Server: Searching for term:", searchTerm)
@@ -25,15 +25,17 @@ export async function POST(request: NextRequest) {
     const { data: profiles, error: searchError } = await supabase
       .from("profiles")
       .select("id, display_name, email")
-      .or(`display_name.ilike.%${searchTerm}%,email.ilike.${searchTerm}%`)
+      .or(`display_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
       .limit(10)
 
     if (searchError) {
       console.error("[v0] Server: Error searching profiles:", searchError)
+      console.error("[v0] Server: Error details:", JSON.stringify(searchError, null, 2))
       return NextResponse.json({ error: "Failed to search users" }, { status: 500 })
     }
 
     console.log("[v0] Server: Found profiles:", profiles?.length || 0)
+    console.log("[v0] Server: Profile data:", JSON.stringify(profiles, null, 2))
 
     if (!profiles || profiles.length === 0) {
       console.log("[v0] Server: No profiles found")
@@ -48,10 +50,12 @@ export async function POST(request: NextRequest) {
     }))
 
     console.log("[v0] Server: Returning results:", results.length)
+    console.log("[v0] Server: Results data:", JSON.stringify(results, null, 2))
     return NextResponse.json({ users: results })
   } catch (error) {
     console.error("[v0] Server: Error in search-users API:", error)
     console.error("[v0] Server: Error stack:", error instanceof Error ? error.stack : "No stack trace")
+    console.error("[v0] Server: Error message:", error instanceof Error ? error.message : String(error))
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
