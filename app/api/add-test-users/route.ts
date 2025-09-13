@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { type NextRequest, NextResponse } from "next/server"
+import { randomUUID } from "crypto"
 
 export async function POST(request: NextRequest) {
   console.log("[v0] Adding test users to profiles...")
@@ -16,12 +17,12 @@ export async function POST(request: NextRequest) {
     })
 
     const testUsers = [
-      { email: "caber.han@example.com", display_name: "caber han" },
-      { email: "cruise.h@example.com", display_name: "cruise H" },
-      { email: "eunjung.kim@example.com", display_name: "eunjung kim" },
-      { email: "hanmabong@example.com", display_name: "hanmabong" },
-      { email: "john.doe@example.com", display_name: "John Doe" },
-      { email: "jane.smith@example.com", display_name: "Jane Smith" },
+      { id: randomUUID(), email: "caber.han@example.com", display_name: "caber han" },
+      { id: randomUUID(), email: "cruise.h@example.com", display_name: "cruise H" },
+      { id: randomUUID(), email: "eunjung.kim@example.com", display_name: "eunjung kim" },
+      { id: randomUUID(), email: "hanmabong@example.com", display_name: "hanmabong" },
+      { id: randomUUID(), email: "john.doe@example.com", display_name: "John Doe" },
+      { id: randomUUID(), email: "jane.smith@example.com", display_name: "Jane Smith" },
     ]
 
     const { data, error } = await supabase.from("profiles").insert(testUsers).select()
