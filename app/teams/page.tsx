@@ -302,7 +302,7 @@ export default function TeamsPage() {
                 <Plus className="h-4 w-4 mr-2" />팀 만들기
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md mx-auto my-4 max-h-[80vh] flex flex-col">
+            <DialogContent className="max-w-md mx-auto fixed top-[15%] left-1/2 transform -translate-x-1/2 h-[70vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>새 팀 만들기</DialogTitle>
               </DialogHeader>
@@ -310,7 +310,7 @@ export default function TeamsPage() {
                 <div>
                   <label className="block text-sm font-medium mb-2">팀 멤버 선택 (3명)</label>
                   <p className="text-sm text-muted-foreground mb-3">팀장(본인) 포함 총 4명이 됩니다.</p>
-                  <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-2">
+                  <div className="space-y-2 max-h-80 overflow-y-auto border rounded-md p-2">
                     {users.map((user) => (
                       <div
                         key={user.id}
@@ -321,6 +321,7 @@ export default function TeamsPage() {
                           id={user.id}
                           checked={selectedMembers.includes(user.id)}
                           onChange={(e) => {
+                            console.log("[v0] Checkbox changed:", e.target.checked, "for user:", user.id)
                             if (e.target.checked) {
                               if (selectedMembers.length < 3) {
                                 setSelectedMembers([...selectedMembers, user.id])
@@ -348,7 +349,12 @@ export default function TeamsPage() {
                     취소
                   </Button>
                   <Button
-                    onClick={handleCreateTeam}
+                    onClick={() => {
+                      console.log("[v0] Create team button clicked")
+                      console.log("[v0] Selected members count:", selectedMembers.length)
+                      console.log("[v0] Current user:", currentUser)
+                      handleCreateTeam()
+                    }}
                     disabled={creating || selectedMembers.length !== 3}
                     className="bg-orange-600 hover:bg-orange-700"
                   >
