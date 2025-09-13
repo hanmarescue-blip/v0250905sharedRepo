@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@supabase/supabase-js"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -13,10 +13,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ users: [] })
     }
 
-    console.log("[v0] Server: Creating Supabase admin client...")
+    console.log("[v0] Server: Creating Supabase client with service role...")
 
-    const supabase = createAdminClient()
-    console.log("[v0] Server: Supabase admin client created successfully")
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+    console.log("[v0] Server: Supabase client created successfully")
 
     const searchTerm = searchName.trim().toLowerCase()
     console.log("[v0] Server: Searching for term:", searchTerm)
