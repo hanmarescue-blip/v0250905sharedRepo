@@ -25,6 +25,8 @@ interface TeamMember {
   team_id: string
   user_id: string
   joined_at: string
+  role: string
+  status: string
 }
 
 interface TeamManagementProps {
@@ -36,6 +38,7 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
   const [teams, setTeams] = useState<Team[]>([])
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [newTeamName, setNewTeamName] = useState("")
+  const [memberNames, setMemberNames] = useState<string[]>(["", "", ""])
   const [creating, setCreating] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -77,7 +80,9 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
             id,
             team_id,
             user_id,
-            joined_at
+            joined_at,
+            role,
+            status
           )
         `)
         .eq("club_id", clubId)
@@ -95,6 +100,7 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
   const handleOpenCreateDialog = () => {
     const nextName = generateNextTeamName()
     setNewTeamName(nextName)
+    setMemberNames(["", "", ""])
     setShowCreateDialog(true)
   }
 
@@ -109,6 +115,7 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
           name: newTeamName,
           club_id: clubId,
           leader_id: currentUserId,
+          status: "active",
         })
         .select()
         .single()
@@ -119,11 +126,29 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
       const { error: memberError } = await supabase.from("team_members").insert({
         team_id: teamData.id,
         user_id: currentUserId,
+        role: "leader",
+        status: "confirmed",
       })
 
       if (memberError) throw memberError
 
+      const memberInserts = memberNames
+        .filter((name) => name.trim())
+        .map((name) => ({
+          team_id: teamData.id,
+          user_id: `placeholder_${Date.now()}_${Math.random()}`, // Temporary placeholder
+          role: "member",
+          status: "pending",
+        }))
+
+      if (memberInserts.length > 0) {
+        const { error: membersError } = await supabase.from("team_members").insert(memberInserts)
+
+        if (membersError) console.error("Error adding team members:", membersError)
+      }
+
       setNewTeamName("")
+      setMemberNames(["", "", ""])
       setShowCreateDialog(false)
       await loadTeams()
       alert("팀이 생성되었습니다!")
@@ -168,6 +193,12 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
     }
   }
 
+  const updateMemberName = (index: number, name: string) => {
+    const newNames = [...memberNames]
+    newNames[index] = name
+    setMemberNames(newNames)
+  }
+
   if (loading) {
     return <div className="text-center py-8">팀 정보를 불러오는 중...</div>
   }
@@ -193,13 +224,26 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-700">팀 이름</label>
-                <Input
-                  value={newTeamName}
-                  onChange={(e) => setNewTeamName(e.target.value)}
-                  placeholder="팀 이름을 입력하세요"
-                  className="bg-white border-gray-300 text-gray-900"
-                />
+                <Input value={newTeamName} readOnly className="bg-gray-50 border-gray-300 text-gray-900" />
+                <p className="text-xs text-gray-500 mt-1">팀 이름은 자동으로 생성됩니다</p>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700">팀원 이름 (3명)</label>
+                <div className="space-y-2">
+                  {memberNames.map((name, index) => (
+                    <Input
+                      key={index}
+                      value={name}
+                      onChange={(e) => updateMemberName(index, e.target.value)}
+                      placeholder={`팀원 ${index + 1} 이름`}
+                      className="bg-white border-gray-300 text-gray-900"
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">팀장 포함 총 4명으로 구성됩니다</p>
+              </div>
+
               <div className="flex gap-2 justify-end">
                 <Button
                   variant="outline"
@@ -210,7 +254,7 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
                 </Button>
                 <Button
                   onClick={handleCreateTeam}
-                  disabled={creating || !newTeamName.trim()}
+                  disabled={creating}
                   className="bg-orange-600 hover:bg-orange-700 text-white"
                 >
                   {creating ? "생성 중..." : "팀 만들기"}
