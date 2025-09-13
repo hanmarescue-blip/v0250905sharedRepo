@@ -5,6 +5,7 @@ import { Camera, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
+import { NotificationBadge } from "@/components/notification-badge"
 
 type User = {
   email: string
@@ -162,6 +163,17 @@ export function Header() {
             <Users className="w-4 h-4" />
             동호회 게시판
           </Button>
+          {user && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={() => router.push("/notifications")}
+            >
+              <NotificationBadge userId={user.id} />
+              알림
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
