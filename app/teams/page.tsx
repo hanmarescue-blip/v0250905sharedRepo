@@ -101,20 +101,10 @@ export default function TeamsPage() {
 
   const loadUsers = async () => {
     try {
-      // Get all users from auth.users via a function or view
-      // For now, we'll use a simple approach
-      const { data, error } = await supabase.from("team_members").select("user_id").neq("user_id", currentUser?.id)
+      const { data, error } = await supabase.from("profiles").select("id, email").neq("id", currentUser?.id).limit(20)
 
       if (error) throw error
-
-      // This is a simplified approach - in a real app, you'd have a users table
-      const uniqueUserIds = [...new Set(data?.map((m) => m.user_id) || [])]
-      const mockUsers = uniqueUserIds.map((id) => ({
-        id,
-        email: `user${id.slice(0, 8)}@example.com`,
-      }))
-
-      setUsers(mockUsers)
+      setUsers(data || [])
     } catch (error) {
       console.error("Error loading users:", error)
     }
@@ -294,101 +284,58 @@ export default function TeamsPage() {
                 <Plus className="h-4 w-4 mr-2" />팀 만들기
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl">
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-              <div className="relative z-10 bg-white dark:bg-gray-900 rounded-lg p-6">
-                <DialogHeader>
-                  <DialogTitle className="text-gray-900 dark:text-gray-100">새 팀 만들기</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                      팀 멤버 선택 (3명)
-                    </label>
-                    <p className="text-sm text-muted-foreground mb-3">팀장(본인) 포함 총 4명이 됩니다.</p>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {users.length === 0
-                        ? // Demo users for testing
-                          Array.from({ length: 5 }, (_, i) => ({
-                            id: `demo-user-${i + 1}`,
-                            email: `사용자${i + 1}@example.com`,
-                          })).map((user) => (
-                            <div
-                              key={user.id}
-                              className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-                            >
-                              <input
-                                type="checkbox"
-                                id={user.id}
-                                checked={selectedMembers.includes(user.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    if (selectedMembers.length < 3) {
-                                      setSelectedMembers([...selectedMembers, user.id])
-                                    }
-                                  } else {
-                                    setSelectedMembers(selectedMembers.filter((id) => id !== user.id))
-                                  }
-                                }}
-                                disabled={!selectedMembers.includes(user.id) && selectedMembers.length >= 3}
-                                className="rounded border-gray-300"
-                              />
-                              <label
-                                htmlFor={user.id}
-                                className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1"
-                              >
-                                {user.email}
-                              </label>
-                            </div>
-                          ))
-                        : users.slice(0, 10).map((user) => (
-                            <div
-                              key={user.id}
-                              className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-                            >
-                              <input
-                                type="checkbox"
-                                id={user.id}
-                                checked={selectedMembers.includes(user.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    if (selectedMembers.length < 3) {
-                                      setSelectedMembers([...selectedMembers, user.id])
-                                    }
-                                  } else {
-                                    setSelectedMembers(selectedMembers.filter((id) => id !== user.id))
-                                  }
-                                }}
-                                disabled={!selectedMembers.includes(user.id) && selectedMembers.length >= 3}
-                                className="rounded border-gray-300"
-                              />
-                              <label
-                                htmlFor={user.id}
-                                className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1"
-                              >
-                                {user.email}
-                              </label>
-                            </div>
-                          ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">선택된 멤버: {selectedMembers.length}/3명</p>
+            <DialogContent className="max-w-md mx-auto my-8">
+              <DialogHeader>
+                <DialogTitle>새 팀 만들기</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">팀 멤버 선택 (3명)</label>
+                  <p className="text-sm text-muted-foreground mb-3">팀장(본인) 포함 총 4명이 됩니다.</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {users.map((user) => (
+                      <div
+                        key={user.id}
+                        className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        <input
+                          type="checkbox"
+                          id={user.id}
+                          checked={selectedMembers.includes(user.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              if (selectedMembers.length < 3) {
+                                setSelectedMembers([...selectedMembers, user.id])
+                              }
+                            } else {
+                              setSelectedMembers(selectedMembers.filter((id) => id !== user.id))
+                            }
+                          }}
+                          disabled={!selectedMembers.includes(user.id) && selectedMembers.length >= 3}
+                          className="rounded border-gray-300"
+                        />
+                        <label htmlFor={user.id} className="text-sm cursor-pointer flex-1">
+                          {user.email}
+                        </label>
+                      </div>
+                    ))}
+                    {users.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">사용자를 불러오는 중...</p>
+                    )}
                   </div>
-                  <div className="flex gap-2 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowCreateDialog(false)}
-                      className="text-gray-600 dark:text-gray-400"
-                    >
-                      취소
-                    </Button>
-                    <Button
-                      onClick={handleCreateTeam}
-                      disabled={creating || selectedMembers.length !== 3}
-                      className="bg-orange-600 hover:bg-orange-700 text-white"
-                    >
-                      {creating ? "생성 중..." : "팀 만들기"}
-                    </Button>
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">선택된 멤버: {selectedMembers.length}/3명</p>
+                </div>
+                <div className="flex gap-2 justify-end pt-4 border-t">
+                  <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                    취소
+                  </Button>
+                  <Button
+                    onClick={handleCreateTeam}
+                    disabled={creating || selectedMembers.length !== 3}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    {creating ? "생성 중..." : "팀 만들기"}
+                  </Button>
                 </div>
               </div>
             </DialogContent>
