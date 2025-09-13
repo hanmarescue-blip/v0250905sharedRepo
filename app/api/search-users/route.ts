@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Server: Searching for user:", searchName.trim())
 
-    // Use admin client to search users
-    const { data: authUsers, error: listError } = await supabase.auth.admin.listUsers()
+    const adminClient = createAdminClient()
+    const { data: authUsers, error: listError } = await adminClient.auth.admin.listUsers()
 
     if (listError) {
       console.error("[v0] Server: Error listing users:", listError)

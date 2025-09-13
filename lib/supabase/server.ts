@@ -44,3 +44,18 @@ export const createClient = cache(() => {
     },
   })
 })
+
+export const createAdminClient = () => {
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseServiceRoleKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for admin operations")
+  }
+
+  return createServerClient(supabaseUrl!, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
+}
