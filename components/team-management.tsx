@@ -186,8 +186,7 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
               <Plus className="h-4 w-4 mr-2" />새 팀 만들기
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-white border-2 border-gray-200 shadow-2xl relative">
-            <div className="absolute inset-0 bg-black/80 -z-10" />
+          <DialogContent className="bg-white border-2 border-gray-200 shadow-2xl">
             <DialogHeader>
               <DialogTitle className="text-gray-900">새 팀 만들기</DialogTitle>
             </DialogHeader>
