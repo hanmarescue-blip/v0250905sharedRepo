@@ -26,28 +26,28 @@ export async function POST(request: NextRequest) {
     const searchTerm = searchName.trim().toLowerCase()
     console.log("[v0] Server: Searching for term:", searchTerm)
 
-    console.log("[v0] Server: Querying user_info table...")
-    const { data: userInfo, error: searchError } = await supabase
-      .from("user_info")
+    console.log("[v0] Server: Querying profiles table...")
+    const { data: profiles, error: searchError } = await supabase
+      .from("profiles")
       .select("id, display_name, email")
       .or(`display_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
       .limit(10)
 
     if (searchError) {
-      console.error("[v0] Server: Error searching user_info:", searchError)
+      console.error("[v0] Server: Error searching profiles:", searchError)
       console.error("[v0] Server: Error details:", JSON.stringify(searchError, null, 2))
       return NextResponse.json({ error: "Failed to search users" }, { status: 500 })
     }
 
-    console.log("[v0] Server: Found user_info records:", userInfo?.length || 0)
-    console.log("[v0] Server: User_info data:", JSON.stringify(userInfo, null, 2))
+    console.log("[v0] Server: Found profiles records:", profiles?.length || 0)
+    console.log("[v0] Server: Profiles data:", JSON.stringify(profiles, null, 2))
 
-    if (!userInfo || userInfo.length === 0) {
-      console.log("[v0] Server: No user_info records found")
+    if (!profiles || profiles.length === 0) {
+      console.log("[v0] Server: No profiles records found")
       return NextResponse.json({ users: [] })
     }
 
-    const results = userInfo.map((user) => ({
+    const results = profiles.map((user) => ({
       id: user.id,
       display_name: user.display_name || user.email?.split("@")[0] || "",
       email: user.email || "",
@@ -85,19 +85,19 @@ export async function GET(request: NextRequest) {
 
     const searchTerm = searchName.trim().toLowerCase()
 
-    const { data: userInfo, error: searchError } = await supabase
-      .from("user_info")
+    const { data: profiles, error: searchError } = await supabase
+      .from("profiles")
       .select("id, display_name, email")
       .or(`display_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
       .limit(10)
 
     if (searchError) {
-      console.error("[v0] Server: Error searching user_info:", searchError)
+      console.error("[v0] Server: Error searching profiles:", searchError)
       return NextResponse.json({ error: "Failed to search users" }, { status: 500 })
     }
 
     const results =
-      userInfo?.map((user) => ({
+      profiles?.map((user) => ({
         id: user.id,
         display_name: user.display_name || user.email?.split("@")[0] || "",
         email: user.email || "",
