@@ -6,13 +6,84 @@ import { Card, CardContent } from "@/components/ui/card"
 import { MapPin, Users, Clock, Ban, Camera, Eye, Wifi, Monitor } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import TeamInvitations from "@/components/team-invitations"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
+import { useEffect, useState } from "react"
+
+type User = {
+  email: string
+  name?: string
+  picture?: string
+  id: string
+}
 
 export default function HomePage() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        if (!isSupabaseConfigured) {
+          setLoading(false)
+          return
+        }
+
+        const {
+          data: { user: supabaseUser },
+        } = await supabase.auth.getUser()
+
+        if (supabaseUser) {
+          setUser({
+            email: supabaseUser.email || "",
+            name: supabaseUser.user_metadata?.name,
+            picture: supabaseUser.user_metadata?.picture,
+            id: supabaseUser.id,
+          })
+        }
+      } catch (error) {
+        console.error("Error checking user:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkUser()
+
+    if (!isSupabaseConfigured) {
+      return
+    }
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser({
+          email: session.user.email || "",
+          name: session.user.user_metadata?.name,
+          picture: session.user.user_metadata?.picture,
+          id: session.user.id,
+        })
+      } else {
+        setUser(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase])
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="max-w-4xl mx-auto px-4 py-8">
+        {!loading && user && (
+          <div className="mb-8">
+            <TeamInvitations currentUserId={user.id} />
+          </div>
+        )}
+
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-foreground mb-2">편리한 공간대여 서비스</h2>
 

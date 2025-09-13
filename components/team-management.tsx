@@ -122,7 +122,6 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
 
       if (teamError) throw teamError
 
-      // 팀장을 팀 멤버로 자동 추가
       const { error: memberError } = await supabase.from("team_members").insert({
         team_id: teamData.id,
         user_id: currentUserId,
@@ -132,13 +131,28 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
 
       if (memberError) throw memberError
 
+      const memberInvitations = memberNames
+        .filter((name) => name.trim())
+        .map((name) => ({
+          team_id: teamData.id,
+          inviter_id: currentUserId,
+          invitee_id: `pending_${name.trim()}_${Date.now()}`, // Temporary ID until user accepts
+          status: "pending",
+        }))
+
+      if (memberInvitations.length > 0) {
+        const { error: invitationsError } = await supabase.from("team_invitations").insert(memberInvitations)
+
+        if (invitationsError) console.error("Error creating invitations:", invitationsError)
+      }
+
       const memberInserts = memberNames
         .filter((name) => name.trim())
         .map((name) => ({
           team_id: teamData.id,
-          user_id: `placeholder_${Date.now()}_${Math.random()}`, // Temporary placeholder
+          user_id: `pending_${name.trim()}_${Date.now()}`,
           role: "member",
-          status: "pending",
+          status: "invited",
         }))
 
       if (memberInserts.length > 0) {
@@ -151,7 +165,9 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
       setMemberNames(["", "", ""])
       setShowCreateDialog(false)
       await loadTeams()
-      alert("팀이 생성되었습니다!")
+      alert(
+        `팀이 생성되었습니다! ${memberNames.filter((name) => name.trim()).length}명에게 초대 알림이 전송되었습니다.`,
+      )
     } catch (error) {
       console.error("Error creating team:", error)
       alert("팀 생성 중 오류가 발생했습니다.")
