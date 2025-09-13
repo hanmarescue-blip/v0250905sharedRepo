@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google"
 import Script from "next/script"
+import NotificationWrapper from "@/components/notifications/notification-wrapper"
 import "./globals.css"
 
 const notoSansKR = Noto_Sans_KR({
@@ -44,6 +45,7 @@ export default function RootLayout({
           `}
         </Script>
         {children}
+        <NotificationWrapper />
       </body>
     </html>
   )

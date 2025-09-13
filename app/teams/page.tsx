@@ -212,6 +212,24 @@ export default function TeamsPage() {
 
       if (invitationError) throw invitationError
 
+      const { data: teamMembers, error: membersError } = await supabase
+        .from("team_members")
+        .select("status")
+        .eq("team_id", teamId)
+
+      if (!membersError && teamMembers) {
+        const allConfirmed = teamMembers.every((member) => member.status === "confirmed")
+
+        if (allConfirmed && teamMembers.length === 4) {
+          // Activate the team when all 4 members are confirmed
+          const { error: activateError } = await supabase.from("teams").update({ status: "active" }).eq("id", teamId)
+
+          if (!activateError) {
+            alert("모든 멤버가 확인했습니다! 팀이 활성화되었습니다.")
+          }
+        }
+      }
+
       await loadTeams()
       alert("팀 가입을 확인했습니다!")
     } catch (error) {
@@ -284,15 +302,15 @@ export default function TeamsPage() {
                 <Plus className="h-4 w-4 mr-2" />팀 만들기
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md mx-auto my-8">
+            <DialogContent className="max-w-md mx-auto my-4 max-h-[80vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>새 팀 만들기</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 flex-1 overflow-hidden">
                 <div>
                   <label className="block text-sm font-medium mb-2">팀 멤버 선택 (3명)</label>
                   <p className="text-sm text-muted-foreground mb-3">팀장(본인) 포함 총 4명이 됩니다.</p>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-2">
                     {users.map((user) => (
                       <div
                         key={user.id}
