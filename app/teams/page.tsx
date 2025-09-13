@@ -181,8 +181,12 @@ export default function TeamsPage() {
     }
 
     const validMembers = selectedMembers.filter(Boolean)
+    console.log("[v0] Valid members count:", validMembers.length)
+    console.log("[v0] Selected members array:", selectedMembers)
+    console.log("[v0] Valid members:", validMembers)
+
     if (validMembers.length !== 3) {
-      alert("정확히 3명의 팀원을 선택해주세요.")
+      alert(`정확히 3명의 팀원을 선택해주세요. 현재: ${validMembers.length}명`)
       return
     }
 
@@ -190,28 +194,46 @@ export default function TeamsPage() {
     try {
       console.log("[v0] Starting team creation...")
       console.log("[v0] Current user:", currentUser.id)
+      console.log("[v0] Team name:", teamName)
       console.log("[v0] Selected members:", validMembers)
 
       const generatedTeamName = teamName.trim() || `팀 ${Date.now().toString().slice(-6)}`
+      console.log("[v0] Generated team name:", generatedTeamName)
+
+      const requestBody = {
+        name: generatedTeamName,
+        leader_id: currentUser.id,
+        member_ids: validMembers,
+      }
+      console.log("[v0] Request body:", JSON.stringify(requestBody, null, 2))
 
       const response = await fetch("/api/create-team", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: generatedTeamName,
-          leader_id: currentUser.id,
-          member_ids: validMembers,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to create team")
+      console.log("[v0] Response status:", response.status)
+      console.log("[v0] Response ok:", response.ok)
+
+      const responseText = await response.text()
+      console.log("[v0] Response text:", responseText)
+
+      let result
+      try {
+        result = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error("[v0] Failed to parse response:", parseError)
+        throw new Error(`Invalid response format: ${responseText}`)
       }
 
-      const result = await response.json()
+      if (!response.ok) {
+        console.error("[v0] API Error Response:", result)
+        throw new Error(result.error || `HTTP ${response.status}: ${responseText}`)
+      }
+
       console.log("[v0] Team created successfully:", result)
 
       // Reset form
@@ -355,11 +377,11 @@ export default function TeamsPage() {
                 <Plus className="h-4 w-4 mr-2" />팀 만들기
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md mx-auto fixed top-[10px] left-1/2 transform -translate-x-1/2 h-[85vh] flex flex-col z-50 bg-white dark:bg-gray-900 border-2 border-orange-500">
-              <DialogHeader className="pb-4">
-                <DialogTitle className="text-xl">새 팀 만들기</DialogTitle>
+            <DialogContent className="max-w-md mx-auto fixed top-[50px] left-1/2 transform -translate-x-1/2 h-[90vh] flex flex-col z-50 bg-white dark:bg-gray-900 border-4 border-red-500 shadow-2xl">
+              <DialogHeader className="pb-4 bg-red-100 dark:bg-red-900 -mx-6 -mt-6 px-6 pt-6 mb-4">
+                <DialogTitle className="text-xl text-red-800 dark:text-red-200">새 팀 만들기 (상단 위치)</DialogTitle>
               </DialogHeader>
-              <div className="space-y-6 flex-1 overflow-y-auto px-1">
+              <div className="space-y-6 flex-1 overflow-y-auto px-1" style={{ maxHeight: "calc(90vh - 120px)" }}>
                 <div>
                   <label className="block text-sm font-medium mb-2">팀 이름</label>
                   <input
