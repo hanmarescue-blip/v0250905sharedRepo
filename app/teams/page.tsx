@@ -128,16 +128,23 @@ export default function TeamsPage() {
 
     setCreating(true)
     try {
+      console.log("[v0] Starting team creation for user:", currentUser.id)
+      console.log("[v0] Selected members:", selectedMembers)
+
+      const teamName = `팀 ${Date.now().toString().slice(-6)}`
+
       // Create team with auto-generated name
       const { data: teamData, error: teamError } = await supabase
         .from("teams")
         .insert({
+          name: teamName,
           leader_id: currentUser.id,
           status: "pending",
         })
         .select()
         .single()
 
+      console.log("[v0] Team creation result:", { teamData, teamError })
       if (teamError) throw teamError
 
       // Add team leader as confirmed member
@@ -180,7 +187,7 @@ export default function TeamsPage() {
       await loadTeams()
       alert(`팀 ${teamData.name}이 생성되었습니다! 멤버들의 확인을 기다리고 있습니다.`)
     } catch (error) {
-      console.error("Error creating team:", error)
+      console.error("[v0] Error creating team:", error)
       alert("팀 생성 중 오류가 발생했습니다.")
     } finally {
       setCreating(false)
