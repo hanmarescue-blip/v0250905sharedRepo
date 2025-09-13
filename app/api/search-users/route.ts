@@ -26,30 +26,33 @@ export async function POST(request: NextRequest) {
     const searchTerm = searchName.trim().toLowerCase()
     console.log("[v0] Server: Searching for term:", searchTerm)
 
-    console.log("[v0] Server: Querying profiles table...")
-    const { data: profiles, error: searchError } = await supabase
-      .from("profiles")
-      .select("id, display_name, email")
-      .or(`display_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
-      .limit(10)
+    console.log("[v0] Server: Querying user_info table...")
+    const { data: userInfo, error: searchError } = await supabase.from("user_info").select("*").limit(10)
 
     if (searchError) {
-      console.error("[v0] Server: Error searching profiles:", searchError)
+      console.error("[v0] Server: Error searching user_info:", searchError)
       console.error("[v0] Server: Error details:", JSON.stringify(searchError, null, 2))
       return NextResponse.json({ error: "Failed to search users" }, { status: 500 })
     }
 
-    console.log("[v0] Server: Found profiles records:", profiles?.length || 0)
-    console.log("[v0] Server: Profiles data:", JSON.stringify(profiles, null, 2))
+    console.log("[v0] Server: Found user_info records:", userInfo?.length || 0)
+    console.log("[v0] Server: User_info data:", JSON.stringify(userInfo, null, 2))
 
-    if (!profiles || profiles.length === 0) {
-      console.log("[v0] Server: No profiles records found")
+    if (!userInfo || userInfo.length === 0) {
+      console.log("[v0] Server: No user_info records found")
       return NextResponse.json({ users: [] })
     }
 
-    const results = profiles.map((user) => ({
+    const filteredUsers = userInfo.filter((user: any) => {
+      const displayName = user.display_name || user.name || user.username || ""
+      const email = user.email || ""
+      const searchableText = `${displayName} ${email}`.toLowerCase()
+      return searchableText.includes(searchTerm)
+    })
+
+    const results = filteredUsers.map((user: any) => ({
       id: user.id,
-      display_name: user.display_name || user.email?.split("@")[0] || "",
+      display_name: user.display_name || user.name || user.username || user.email?.split("@")[0] || "",
       email: user.email || "",
       emailPrefix: (user.email || "").split("@")[0],
     }))
@@ -85,23 +88,26 @@ export async function GET(request: NextRequest) {
 
     const searchTerm = searchName.trim().toLowerCase()
 
-    const { data: profiles, error: searchError } = await supabase
-      .from("profiles")
-      .select("id, display_name, email")
-      .or(`display_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
-      .limit(10)
+    const { data: userInfo, error: searchError } = await supabase.from("user_info").select("*").limit(10)
 
     if (searchError) {
-      console.error("[v0] Server: Error searching profiles:", searchError)
+      console.error("[v0] Server: Error searching user_info:", searchError)
       return NextResponse.json({ error: "Failed to search users" }, { status: 500 })
     }
 
-    const results =
-      profiles?.map((user) => ({
-        id: user.id,
-        display_name: user.display_name || user.email?.split("@")[0] || "",
-        email: user.email || "",
-      })) || []
+    const filteredUsers =
+      userInfo?.filter((user: any) => {
+        const displayName = user.display_name || user.name || user.username || ""
+        const email = user.email || ""
+        const searchableText = `${displayName} ${email}`.toLowerCase()
+        return searchableText.includes(searchTerm)
+      }) || []
+
+    const results = filteredUsers.map((user: any) => ({
+      id: user.id,
+      display_name: user.display_name || user.name || user.username || user.email?.split("@")[0] || "",
+      email: user.email || "",
+    }))
 
     return NextResponse.json({ users: results })
   } catch (error) {

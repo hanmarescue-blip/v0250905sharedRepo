@@ -104,7 +104,7 @@ export default function TeamsPage() {
 
   const loadUsers = async () => {
     try {
-      const { data, error } = await supabase.from("profiles").select("id, email").neq("id", currentUser?.id).limit(20)
+      const { data, error } = await supabase.from("user_info").select("id, email").neq("id", currentUser?.id).limit(20)
 
       if (error) throw error
       setUsers(data || [])
