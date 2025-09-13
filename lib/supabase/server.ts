@@ -52,7 +52,23 @@ export const createAdminClient = () => {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for admin operations")
   }
 
+  const cookieStore = cookies()
+
   return createServerClient(supabaseUrl!, supabaseServiceRoleKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+        } catch {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
+      },
+    },
     auth: {
       autoRefreshToken: false,
       persistSession: false,
