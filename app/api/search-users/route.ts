@@ -1,4 +1,4 @@
-import { createClient, createAdminClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -7,18 +7,6 @@ export async function POST(request: NextRequest) {
 
     if (!searchName || !searchName.trim()) {
       return NextResponse.json({ users: [] })
-    }
-
-    const supabase = createClient()
-
-    // Get current user to ensure they're authenticated
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     console.log("[v0] Server: Searching for user:", searchName.trim())
