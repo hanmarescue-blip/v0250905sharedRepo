@@ -113,43 +113,62 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
   const searchUsers = async (name: string): Promise<UserSearchResult[]> => {
     if (!name.trim()) return []
 
+    console.log("[v0] Searching for user:", name.trim())
+
     try {
+      console.log("[v0] Searching for exact name match...")
       const { data: exactMatches, error: exactError } = await supabase
         .from("users")
         .select("id, name, email")
         .ilike("name", name.trim())
 
-      if (exactError) throw exactError
+      if (exactError) {
+        console.log("[v0] Exact search error:", exactError)
+        throw exactError
+      }
+
+      console.log("[v0] Exact matches found:", exactMatches?.length || 0)
 
       if (exactMatches && exactMatches.length > 0) {
+        console.log("[v0] Returning exact matches:", exactMatches)
         return exactMatches.map((user) => ({
           user,
           emailPrefix: user.email.split("@")[0],
         }))
       }
 
+      console.log("[v0] No exact matches, searching by email prefix...")
       const { data: emailMatches, error: emailError } = await supabase
         .from("users")
         .select("id, name, email")
         .ilike("email", `${name.trim()}@%`)
 
-      if (emailError) throw emailError
+      if (emailError) {
+        console.log("[v0] Email search error:", emailError)
+        throw emailError
+      }
+
+      console.log("[v0] Email matches found:", emailMatches?.length || 0)
 
       if (emailMatches && emailMatches.length > 0) {
+        console.log("[v0] Returning email matches:", emailMatches)
         return emailMatches.map((user) => ({
           user,
           emailPrefix: user.email.split("@")[0],
         }))
       }
 
+      console.log("[v0] No matches found for:", name.trim())
       return []
     } catch (error) {
-      console.error("Error searching users:", error)
+      console.error("[v0] Error searching users:", error)
       return []
     }
   }
 
   const updateMemberName = async (index: number, name: string) => {
+    console.log("[v0] Updating member name at index", index, "to:", name)
+
     const newNames = [...memberNames]
     newNames[index] = name
     setMemberNames(newNames)
@@ -163,14 +182,19 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
     newSearchErrors[index] = null
 
     if (name.trim()) {
+      console.log("[v0] Starting search for:", name.trim())
       const results = await searchUsers(name)
+      console.log("[v0] Search results:", results)
 
       if (results.length === 0) {
+        console.log("[v0] No users found, setting error message")
         newSearchErrors[index] = "해당 이름의 사용자를 찾을 수 없습니다."
       } else if (results.length === 1) {
+        console.log("[v0] Single user found, auto-selecting")
         newSelectedMembers[index] = results[0].user
         newSearchErrors[index] = null
       } else {
+        console.log("[v0] Multiple users found, showing selection")
         newSearchResults[index] = results
         newSearchErrors[index] = null
       }
