@@ -116,80 +116,36 @@ export default function TeamManagement({ clubId, currentUserId }: TeamManagement
     console.log("[v0] Searching for user:", name.trim())
 
     try {
-      console.log("[v0] Searching auth users by display name...")
-
-      // First search by display name in raw_user_meta_data
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers()
-
-      if (authError) {
-        console.log("[v0] Auth admin error, trying RPC approach:", authError)
-        // Fallback to RPC function if admin access is not available
-        const { data: rpcUsers, error: rpcError } = await supabase.rpc("search_users_by_name", {
-          search_name: name.trim(),
-        })
-
-        if (rpcError) {
-          console.log("[v0] RPC search error:", rpcError)
-          return []
-        }
-
-        return (
-          rpcUsers?.map((user: any) => ({
-            user: {
-              id: user.id,
-              name: user.display_name || user.email.split("@")[0],
-              email: user.email,
-            },
-            emailPrefix: user.email.split("@")[0],
-          })) || []
-        )
-      }
-
-      console.log("[v0] Found auth users:", authUsers?.users?.length || 0)
-
-      if (!authUsers?.users) return []
-
-      // Search by display name first
-      const displayNameMatches = authUsers.users.filter((user) => {
-        const displayName = user.user_metadata?.display_name || user.user_metadata?.name
-        return displayName && displayName.toLowerCase().includes(name.trim().toLowerCase())
+      const response = await fetch("/api/search-users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ searchName: name.trim() }),
       })
 
-      console.log("[v0] Display name matches:", displayNameMatches.length)
-
-      if (displayNameMatches.length > 0) {
-        return displayNameMatches.map((user) => ({
-          user: {
-            id: user.id,
-            name: user.user_metadata?.display_name || user.user_metadata?.name || user.email.split("@")[0],
-            email: user.email || "",
-          },
-          emailPrefix: (user.email || "").split("@")[0],
-        }))
+      if (!response.ok) {
+        console.error("[v0] Search API error:", response.status, response.statusText)
+        return []
       }
 
-      // If no display name matches, search by email prefix
-      console.log("[v0] No display name matches, searching by email prefix...")
-      const emailPrefixMatches = authUsers.users.filter((user) => {
-        const emailPrefix = (user.email || "").split("@")[0]
-        return emailPrefix.toLowerCase() === name.trim().toLowerCase()
-      })
+      const data = await response.json()
 
-      console.log("[v0] Email prefix matches:", emailPrefixMatches.length)
-
-      if (emailPrefixMatches.length > 0) {
-        return emailPrefixMatches.map((user) => ({
-          user: {
-            id: user.id,
-            name: user.user_metadata?.display_name || user.user_metadata?.name || user.email.split("@")[0],
-            email: user.email || "",
-          },
-          emailPrefix: (user.email || "").split("@")[0],
-        }))
+      if (data.error) {
+        console.error("[v0] Search API returned error:", data.error)
+        return []
       }
 
-      console.log("[v0] No matches found for:", name.trim())
-      return []
+      console.log("[v0] Search API results:", data.users?.length || 0)
+
+      return (data.users || []).map((user: any) => ({
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        emailPrefix: user.emailPrefix,
+      }))
     } catch (error) {
       console.error("[v0] Error searching users:", error)
       return []
