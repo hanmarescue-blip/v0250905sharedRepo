@@ -16,12 +16,12 @@ export async function POST(request: NextRequest) {
     })
 
     const testUsers = [
-      { email: "caber.han@example.com", display_name: "caber han", password: "testpassword123" },
-      { email: "cruise.h@example.com", display_name: "cruise H", password: "testpassword123" },
-      { email: "eunjung.kim@example.com", display_name: "eunjung kim", password: "testpassword123" },
-      { email: "hanmabong@example.com", display_name: "hanmabong", password: "testpassword123" },
-      { email: "john.doe@example.com", display_name: "John Doe", password: "testpassword123" },
-      { email: "jane.smith@example.com", display_name: "Jane Smith", password: "testpassword123" },
+      { email: "hanmabong@gmail.com", display_name: "caber han", password: "testpassword123" },
+      { email: "cruisehship@gmail.com", display_name: "cruise H", password: "testpassword123" },
+      { email: "terralinda82@gmail.com", display_name: "EUNJUNG KIM", password: "testpassword123" },
+      { email: "global.ieum@gmail.com", display_name: "EUNJUNG KIM", password: "testpassword123" },
+      { email: "weglobal82@gmail.com", display_name: "EUNJUNG KIM", password: "testpassword123" },
+      { email: "hanmarescue@gmail.com", display_name: "flight rescue", password: "testpassword123" },
     ]
 
     const createdUsers = []
