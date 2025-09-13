@@ -1,6 +1,5 @@
 "use client"
 
-import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MapPin, Users, Clock, Ban, Camera, Eye, Wifi, Monitor } from "lucide-react"
@@ -75,7 +74,36 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <header className="w-full bg-card border-b border-border px-4 py-3">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-orange-500">공유공간</h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Camera className="w-4 h-4" />
+              공간 안내
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              사진게시판
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              동호회 게시판
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Link href="/auth/signin">
+              <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
+                구글 로그인
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {!loading && user && (

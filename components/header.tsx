@@ -3,9 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Camera, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
-import { NotificationBadge } from "@/components/notification-badge"
+import { useState } from "react"
 
 type User = {
   email: string
@@ -17,68 +15,7 @@ type User = {
 export function Header() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const supabase = createClient()
-
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        console.log("[v0] Checking user session...")
-        console.log("[v0] Supabase configured:", isSupabaseConfigured)
-        console.log("[v0] SUPABASE_URL exists:", !!process.env.NEXT_PUBLIC_SUPABASE_URL)
-        console.log("[v0] SUPABASE_ANON_KEY exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
-        if (!isSupabaseConfigured) {
-          console.log("[v0] Supabase not configured, skipping auth check")
-          setLoading(false)
-          return
-        }
-
-        const {
-          data: { user: supabaseUser },
-        } = await supabase.auth.getUser()
-        console.log("[v0] Supabase user session:", supabaseUser)
-
-        if (supabaseUser) {
-          setUser({
-            email: supabaseUser.email || "",
-            name: supabaseUser.user_metadata?.name,
-            picture: supabaseUser.user_metadata?.picture,
-            id: supabaseUser.id,
-          })
-        }
-      } catch (error) {
-        console.error("[v0] Error checking user:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkUser()
-
-    if (!isSupabaseConfigured) {
-      return
-    }
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("[v0] Auth state changed:", event, session?.user?.email)
-      if (session?.user) {
-        setUser({
-          email: session.user.email || "",
-          name: session.user.user_metadata?.name,
-          picture: session.user.user_metadata?.picture,
-          id: session.user.id,
-        })
-      } else {
-        setUser(null)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase])
+  const [loading, setLoading] = useState(false)
 
   const handleHomeClick = () => {
     router.push("/")
@@ -86,49 +23,13 @@ export function Header() {
 
   const handleGoogleSignIn = async () => {
     console.log("[v0] Google sign in button clicked")
-    console.log("[v0] Supabase configured:", isSupabaseConfigured)
-
-    if (!isSupabaseConfigured) {
-      alert("로그인 기능이 설정되지 않았습니다. 관리자에게 문의하세요.")
-      return
-    }
-
-    try {
-      console.log("[v0] Starting Supabase Google OAuth...")
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      if (error) {
-        console.error("[v0] Supabase OAuth error:", error)
-        alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.")
-      }
-    } catch (error) {
-      console.error("[v0] Error during Google sign in:", error)
-      alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.")
-    }
+    router.push("/auth/signin")
   }
 
   const handleSignOut = async () => {
-    if (!isSupabaseConfigured) {
-      return
-    }
-
-    try {
-      console.log("[v0] Signing out...")
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error("[v0] Sign out error:", error)
-      } else {
-        setUser(null)
-        console.log("[v0] Sign out successful")
-      }
-    } catch (error) {
-      console.error("[v0] Error signing out:", error)
-    }
+    console.log("[v0] Sign out clicked")
+    setUser(null)
+    router.push("/")
   }
 
   return (
@@ -163,17 +64,6 @@ export function Header() {
             <Users className="w-4 h-4" />
             동호회 게시판
           </Button>
-          {user && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => router.push("/notifications")}
-            >
-              <NotificationBadge userId={user.id} />
-              알림
-            </Button>
-          )}
         </div>
 
         <div className="flex items-center gap-4">
