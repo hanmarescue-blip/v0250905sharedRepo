@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import MyReservationsList from "@/components/my-reservations-list"
 
+export const dynamic = "force-dynamic"
+
 export default async function MyReservationsPage() {
   const supabase = createClient()
 

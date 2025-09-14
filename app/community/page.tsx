@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import CommunityGroups from "@/components/community-groups"
 import { Header } from "@/components/header"
 
+export const dynamic = "force-dynamic"
+
 export default async function CommunityPage() {
   const supabase = createClient()
 
