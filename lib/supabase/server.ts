@@ -6,8 +6,8 @@ import { cookies } from "next/headers"
  * global variable. Always create a new client within each function when using
  * it.
  */
-export async function createClient() {
-  const cookieStore = await cookies()
+export function createClient() {
+  const cookieStore = cookies()
 
   return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
